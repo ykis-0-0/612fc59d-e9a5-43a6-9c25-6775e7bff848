@@ -33,12 +33,12 @@ func TestParseCIDR_ReadError(t *testing.T) {
 	}
 }
 
-var testCases = map[string]struct {
+var cidrListTestCases = map[string]struct {
 	have  string
 	want  []netip.Prefix
 	erred bool
 }{
-	"full-features": {
+	"full-featured": {
 		have: strings.Join([]string{
 			"// Comment 1",
 			" # Comment 2",
@@ -63,14 +63,34 @@ var testCases = map[string]struct {
 		want:  []netip.Prefix{netip.MustParsePrefix("203.0.113.0/24")},
 		erred: true,
 	},
+	"v4-only": {
+		have: strings.Join([]string{
+			"192.0.2.0/24",
+			"198.51.100.0/25",
+		}, "\n"),
+		want: []netip.Prefix{
+			netip.MustParsePrefix("192.0.2.0/24"),
+			netip.MustParsePrefix("198.51.100.0/25"),
+		},
+	},
+	"v6-only": {
+		have: strings.Join([]string{
+			"2001:db8::/32",
+			"fc00::/7",
+		}, "\n"),
+		want: []netip.Prefix{
+			netip.MustParsePrefix("2001:db8::/32"),
+			netip.MustParsePrefix("fc00::/7"),
+		},
+	},
 }
 
 func TestParseCIDR_Success(t *testing.T) {
-	assertParseCase(t, testCases["full-features"])
+	assertParseCase(t, cidrListTestCases["full-featured"])
 }
 
 func TestParseCIDR_InvalidLine(t *testing.T) {
-	assertParseCase(t, testCases["invalid-line"])
+	assertParseCase(t, cidrListTestCases["invalid-line"])
 }
 
 func assertParseCase(t *testing.T, tc struct {
