@@ -9,11 +9,22 @@ import (
 type RealIPZoningPlugin struct {
 	next http.Handler
 
+	proxyConf *proxyConf_t
+
+	nullZoneHeaders headerSet
+	invertedZones   map[netip.Prefix]headerSet
 }
 
 // #region Traefik Plugin Interface
 
 type Config struct {
+	TrustedProxies *struct {
+		UseHeader string `json:"useHeader"`
+
+		IPSources
+	} `json:"trustedProxies,omitempty"`
+	NullZoneHeaders headerSet `json:"nullZoneHeaders,omitempty"`
+	Zones           []Zone    `json:"zones,omitempty"`
 }
 
 func CreateConfig() *Config {
@@ -21,9 +32,22 @@ func CreateConfig() *Config {
 }
 
 func New(ctx context.Context, next http.Handler, config *Config) (http.Handler, error) {
+	var proxyConf *proxyConf_t = nil
+
+	if config.TrustedProxies != nil {
+		proxyConf = &proxyConf_t{
+			useHeader: config.TrustedProxies.UseHeader,
+			cidrs:     []netip.Prefix{}, // TODO
+		}
+	}
 
 	return &RealIPZoningPlugin{
 		next: next,
+
+		proxyConf: proxyConf,
+
+		nullZoneHeaders: config.NullZoneHeaders,
+		invertedZones:   make(map[netip.Prefix]headerSet), // TODO: populate from config
 	}, nil
 }
 
