@@ -28,7 +28,7 @@ func mkUrlFetcher(syncer *fetchCollector, href *url.URL) {
 //
 // Returns all errors aggregated alongside all successfully parsed prefixes
 func fetchCIDRsFromURLs(urls []*url.URL) ([]netip.Prefix, error) {
-	syncer := newCollector()
+	syncer := newCollector(len(urls))
 
 	syncer.wg.Add(len(urls))
 	for _, href := range urls {

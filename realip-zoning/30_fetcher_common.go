@@ -12,10 +12,18 @@ type fetchCollector struct {
 	chErr chan error
 }
 
-func newCollector() fetchCollector {
+func newCollector(threads int) fetchCollector {
+	// Eliminate edge cases first
+	switch {
+	case threads == 0:
+		threads = 1
+	case threads < 0:
+		panic("negative thread count")
+	}
+
 	return fetchCollector{
-		chRtv: make(chan netip.Prefix, 10),
-		chErr: make(chan error),
+		chRtv: make(chan netip.Prefix, 5*threads),
+		chErr: make(chan error, threads), // Couldn't be this bad right?
 	}
 }
 
