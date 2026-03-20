@@ -23,6 +23,32 @@ type IPSources struct {
 	DirectSource []netip.Prefix `json:"fromList,omitempty"`
 }
 
+func (srcset IPSources) getCIDRs() []netip.Prefix {
+	// 1a. Fetch from URLs
+	urls := make([]*url.URL, len(srcset.URLSources))
+	for i, u := range srcset.URLSources {
+		urls[i] = u.URL
+	}
+
+	cidrU, errU := fetchCIDRsFromURLs(urls)
+	if errU != nil {
+		// TODO
+	}
+
+	// 1b. Fetch from Files & Dir
+	dir := srcset.DirSource
+	cidrD, errD := fetchCIDRsFromDir(dir)
+	if errD != nil {
+		// TODO
+	}
+
+	cidrSet := slices.Concat(srcset.DirectSource, cidrU, cidrD)
+
+	// TODO CIDR merging logic
+
+	return cidrSet
+}
+
 // Parse a machine-readable plain-text list of CIDRs.
 // One CIDR per line.
 // Empty lines are ignored.

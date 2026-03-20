@@ -37,7 +37,7 @@ func New(ctx context.Context, next http.Handler, config *Config) (http.Handler, 
 	if config.TrustedProxies != nil {
 		proxyConf = &proxyConf_t{
 			useHeader: config.TrustedProxies.UseHeader,
-			cidrs:     []netip.Prefix{}, // TODO
+			cidrs:     config.TrustedProxies.getCIDRs(),
 		}
 	}
 
