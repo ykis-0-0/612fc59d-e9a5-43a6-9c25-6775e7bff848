@@ -13,12 +13,12 @@ import (
 // Fetches and aggregates CIDR lists from specified local directory.
 //
 // Returns all errors aggregated alongside all successfully parsed prefixes
-func fetchCIDRsFromDir(dir string) ([]netip.Prefix, error) {
+func fetchCIDRsFromDir(dir string) ([]netip.Prefix, []error) {
 
 	fso := os.DirFS(dir)
 	entries, err := fs.ReadDir(fso, ".")
 	if err != nil {
-		return nil, fmt.Errorf("unable to list root folder %q: %w", dir, err)
+		return nil, []error{fmt.Errorf("unable to list root folder %q: %w", dir, err)}
 	}
 
 	syncer := newCollector(len(entries))

@@ -32,13 +32,10 @@ func CreateConfig() *Config {
 }
 
 func New(ctx context.Context, next http.Handler, config *Config) (http.Handler, error) {
-	var proxyConf *proxyConf_t = nil
-
-	if config.TrustedProxies != nil {
-		proxyConf = &proxyConf_t{
-			useHeader: config.TrustedProxies.UseHeader,
-			cidrs:     config.TrustedProxies.getCIDRs(),
-		}
+	var proxyConf *proxyConf_t
+	proxyConf, err := mkProxyConf(ctx, config)
+	if err != nil {
+		return nil, err
 	}
 
 	return &RealIPZoningPlugin{

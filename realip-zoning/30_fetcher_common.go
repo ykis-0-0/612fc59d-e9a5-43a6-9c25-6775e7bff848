@@ -1,7 +1,6 @@
 package realip_zoning
 
 import (
-	"errors"
 	"net/netip"
 	"sync"
 )
@@ -27,7 +26,7 @@ func newCollector(threads int) fetchCollector {
 	}
 }
 
-func (syncer *fetchCollector) collect() ([]netip.Prefix, error) {
+func (syncer *fetchCollector) collect() ([]netip.Prefix, []error) {
 	// Capacity is guessed
 	cidrs := make([]netip.Prefix, 0, 20)
 	errs := make([]error, 0, 10)
@@ -59,5 +58,5 @@ func (syncer *fetchCollector) collect() ([]netip.Prefix, error) {
 	}
 
 	// errors.Join() is smart enough to handle (and even return) nils
-	return cidrs, errors.Join(errs...)
+	return cidrs, errs
 }

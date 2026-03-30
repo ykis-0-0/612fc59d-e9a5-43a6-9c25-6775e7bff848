@@ -1,27 +1,33 @@
 package realip_zoning
 
 import (
-	"net/netip"
-	"os"
-	"path/filepath"
+	"errors"
 	"testing"
 	"time"
+
+	"net/netip"
+
+	"os"
+	"path/filepath"
 )
 
 func runFetchWithTimeout(t *testing.T, dir string, d time.Duration) ([]netip.Prefix, error) {
 	t.Helper()
+
 	type result struct {
 		cidrs []netip.Prefix
-		err   error
+		err   []error
 	}
 	ch := make(chan result, 1)
+
 	go func() {
-		cidrs, err := fetchCIDRsFromDir(dir)
-		ch <- result{cidrs, err}
+		cidrs, errs := fetchCIDRsFromDir(dir)
+		ch <- result{cidrs, errs}
 	}()
+
 	select {
 	case res := <-ch:
-		return res.cidrs, res.err
+		return res.cidrs, errors.Join(res.err...)
 	case <-time.After(d):
 		t.Fatal("fetchCIDRsFromDir timed out (possible deadlock)")
 		return nil, nil

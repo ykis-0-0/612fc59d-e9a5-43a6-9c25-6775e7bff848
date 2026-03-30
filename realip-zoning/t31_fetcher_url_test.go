@@ -1,8 +1,10 @@
 package realip_zoning
 
 import (
-	"net/url"
+	"errors"
 	"testing"
+
+	"net/url"
 )
 
 // Integration test using Cloudflare's published list
@@ -23,9 +25,9 @@ func TestCidrUrlFetcher_Cloudflare(t *testing.T) {
 
 	arg01 := []*url.URL{urlV4, urlV6}
 
-	cidrs, err := fetchCIDRsFromURLs(arg01)
-	if err != nil {
-		t.Fatalf("fetchCIDRsFromURLs failed: %v", err)
+	cidrs, errs := fetchCIDRsFromURLs(arg01)
+	if errs != nil {
+		t.Fatalf("fetchCIDRsFromURLs failed: []error =>\n%v", errors.Join(errs...))
 	}
 
 	if len(cidrs) == 0 {
@@ -48,11 +50,11 @@ func TestCidrUrlFetcher_InvalidURL(t *testing.T) {
 	invalidURL, _ := url.Parse("http://example.invalid.tld:65535/file-not-found.txt")
 	urls := []*url.URL{invalidURL}
 
-	cidrs, err := fetchCIDRsFromURLs(urls)
+	cidrs, errs := fetchCIDRsFromURLs(urls)
 
 	// Should have an error (connection refused or similar)
-	if err == nil {
-		t.Error("Expected an error for unreachable URL, got nil")
+	if len(errs) == 0 {
+		t.Error("Expected at least one error for unreachable URL, got nothing")
 	}
 
 	// Should have no CIDRs

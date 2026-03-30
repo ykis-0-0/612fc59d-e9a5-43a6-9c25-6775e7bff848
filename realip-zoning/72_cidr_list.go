@@ -12,7 +12,15 @@ import (
 	"net/netip"
 )
 
+// Sort and merge list of CIDR prefixes,
+// canonical forms are assumed and WILL be panicked on.
+// Empty list get empty result.
 func cidr_Consolidate(cidrs []netip.Prefix) []netip.Prefix {
+	// guard
+	if len(cidrs) == 0 {
+		return []netip.Prefix{}
+	}
+
 	// unpack
 	it_UnpackedPairs := mkMapper(cidr_Unpack, slices.Values(cidrs))
 

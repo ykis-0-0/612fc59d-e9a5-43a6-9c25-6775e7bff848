@@ -41,6 +41,10 @@ var cidrTestCases_AddrPairToPrefixes = testCases_t[[2]netip.Addr, []netip.Prefix
 }
 
 var cidrTestCases_Consolidate = testCases_t[[]netip.Prefix, []netip.Prefix]{
+	"empty": {
+		have: []netip.Prefix{},
+		want: []netip.Prefix{},
+	},
 	"ipv4-sanity": {
 		have: []netip.Prefix{mkCidr("127.0.0.0/8")},
 		want: []netip.Prefix{mkCidr("127.0.0.0/8")},
