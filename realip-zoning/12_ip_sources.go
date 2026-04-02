@@ -34,8 +34,7 @@ func (srcset IPSources) getCIDRs() ([]netip.Prefix, error) {
 	cidrU, errU := fetchCIDRsFromURLs(urls)
 
 	// 1b. Fetch from Files & Dir
-	dir := srcset.DirSource
-	cidrD, errD := fetchCIDRsFromDir(dir)
+	cidrD, errD := fetchCIDRsFromDir(srcset.DirSource)
 
 	checker := func(p netip.Prefix) error {
 		if !p.IsValid() {
@@ -47,15 +46,12 @@ func (srcset IPSources) getCIDRs() ([]netip.Prefix, error) {
 		}
 		return nil
 	}
-	errL := slices.DeleteFunc(
-		slices.Collect(
-			mkMapper(checker, slices.Values(srcset.DirectSource)),
-		),
-		func(err error) bool { return err == nil },
+	errL := slices.Collect(
+		mkMapper(checker, slices.Values(srcset.DirectSource)),
 	)
 
-	if len(errL) > 0 || len(errD) > 0 || len(errU) > 0 {
-		return nil, errors.Join(slices.Concat(errL, errU, errD)...)
+	if err := errors.Join(slices.Concat(errL, errU, errD)...); err != nil {
+		return nil, err
 	}
 
 	cidrSet := slices.Concat(srcset.DirectSource, cidrU, cidrD)
