@@ -21,7 +21,7 @@ func fetchCIDRsFromDir(dir string) ([]netip.Prefix, []error) {
 		return nil, []error{fmt.Errorf("unable to list root folder %q: %w", dir, err)}
 	}
 
-	syncer := newCollector(len(entries))
+	syncer := newCollector[netip.Prefix](len(entries))
 	syncer.wg.Add(len(entries))
 	for _, ent := range entries {
 		go worker(&syncer, fso, ent)
@@ -30,7 +30,7 @@ func fetchCIDRsFromDir(dir string) ([]netip.Prefix, []error) {
 	return syncer.collect()
 }
 
-func worker(syncer *fetchCollector, fsTree fs.FS, ent fs.DirEntry) {
+func worker(syncer *fetchCollector[netip.Prefix], fsTree fs.FS, ent fs.DirEntry) {
 	defer syncer.wg.Done()
 
 	filename := ent.Name()

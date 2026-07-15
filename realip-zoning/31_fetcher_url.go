@@ -9,7 +9,7 @@ import (
 	"net/netip"
 )
 
-func mkUrlFetcher(syncer *fetchCollector, href *url.URL) {
+func mkUrlFetcher(syncer *fetchCollector[netip.Prefix], href *url.URL) {
 	defer syncer.wg.Done()
 
 	resp, err := http.Get(href.String())
@@ -28,7 +28,7 @@ func mkUrlFetcher(syncer *fetchCollector, href *url.URL) {
 //
 // Returns all errors aggregated alongside all successfully parsed prefixes
 func fetchCIDRsFromURLs(urls []*url.URL) ([]netip.Prefix, []error) {
-	syncer := newCollector(len(urls))
+	syncer := newCollector[netip.Prefix](len(urls))
 
 	syncer.wg.Add(len(urls))
 	for _, href := range urls {

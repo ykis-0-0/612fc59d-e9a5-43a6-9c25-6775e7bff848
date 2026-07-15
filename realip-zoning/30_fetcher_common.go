@@ -1,17 +1,16 @@
 package realip_zoning
 
 import (
-	"net/netip"
 	"sync"
 )
 
-type fetchCollector struct {
+type fetchCollector[T any] struct {
 	wg    sync.WaitGroup
-	chRtv chan netip.Prefix
+	chRtv chan T
 	chErr chan error
 }
 
-func newCollector(threads int) fetchCollector {
+func newCollector[T any](threads int) fetchCollector[T] {
 	// Eliminate edge cases first
 	switch {
 	case threads == 0:
@@ -20,19 +19,19 @@ func newCollector(threads int) fetchCollector {
 		panic("negative thread count")
 	}
 
-	return fetchCollector{
-		chRtv: make(chan netip.Prefix, 5*threads),
+	return fetchCollector[T]{
+		chRtv: make(chan T, 5*threads),
 		chErr: make(chan error, threads), // Couldn't be this bad right?
 	}
 }
 
-func (syncer *fetchCollector) collect() ([]netip.Prefix, []error) {
+func (syncer *fetchCollector[T]) collect() ([]T, []error) {
 	// Capacity is guessed
-	cidrs := make([]netip.Prefix, 0, 20)
+	rtvs := make([]T, 0, 20)
 	errs := make([]error, 0, 10)
 
 	// Join childrens and close channels
-	go func(syncer *fetchCollector) {
+	go func(syncer *fetchCollector[T]) {
 		syncer.wg.Wait()
 		close(syncer.chRtv)
 		close(syncer.chErr)
@@ -41,12 +40,12 @@ func (syncer *fetchCollector) collect() ([]netip.Prefix, []error) {
 	// Collection
 	for !(syncer.chRtv == nil && syncer.chErr == nil) {
 		select {
-		case cidr, ok := <-syncer.chRtv:
+		case pkt, ok := <-syncer.chRtv:
 			if !ok {
 				syncer.chRtv = nil
 				continue
 			}
-			cidrs = append(cidrs, cidr)
+			rtvs = append(rtvs, pkt)
 
 		case err, ok := <-syncer.chErr:
 			if !ok {
@@ -57,6 +56,11 @@ func (syncer *fetchCollector) collect() ([]netip.Prefix, []error) {
 		}
 	}
 
+	// Use nil instead of empty slice
+	if len(errs) == 0 {
+		errs = nil
+	}
+
 	// errors.Join() is smart enough to handle (and even return) nils
-	return cidrs, errs
+	return rtvs, errs
 }
