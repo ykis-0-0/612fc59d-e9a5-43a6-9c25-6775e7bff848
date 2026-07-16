@@ -9,10 +9,11 @@ import (
 type RealIPZoningPlugin struct {
 	next http.Handler
 
+	// It may be nil, so the pointer
 	proxyConf *proxyConf_t
 
 	nullZoneHeaders headerSet
-	invertedZones   map[netip.Prefix]headerSet
+	invertedZones   map[netip.Prefix]*headerSet
 }
 
 // #region Traefik Plugin Interface
@@ -38,13 +39,19 @@ func New(ctx context.Context, next http.Handler, config *Config) (http.Handler, 
 		return nil, err
 	}
 
+	var invertedZones map[netip.Prefix]*headerSet
+	invertedZones, err = toInvertedZones(ctx, config.Zones)
+	if err != nil {
+		return nil, err
+	}
+
 	return &RealIPZoningPlugin{
 		next: next,
 
 		proxyConf: proxyConf,
 
 		nullZoneHeaders: config.NullZoneHeaders,
-		invertedZones:   make(map[netip.Prefix]headerSet), // TODO: populate from config
+		invertedZones:   invertedZones,
 	}, nil
 }
 

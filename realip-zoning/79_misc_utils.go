@@ -1,6 +1,9 @@
 package realip_zoning
 
-import "iter"
+import (
+	"fmt"
+	"iter"
+)
 
 func chan2Seq[T any](ch <-chan T) iter.Seq[T] {
 	return func(yield func(T) bool) {
@@ -104,4 +107,22 @@ func mkZip_long[A, B any](left iter.Seq[A], right iter.Seq[B]) iter.Seq[Zipped2[
 			}
 		}
 	}
+}
+
+func mkIfMultiError(err error, contextDesc string) error {
+	type multiError_t = interface {
+		error
+		Unwrap() []error
+	}
+
+	if contextDesc == "" {
+		contextDesc = "<context not provided>"
+	}
+
+	var spacer string
+	if _, ok := err.(multiError_t); ok {
+		spacer = "[]error =>\n"
+	} // else {} // zero value of `spacer` is already empty
+
+	return fmt.Errorf("%s: %s%w", contextDesc, spacer, err)
 }
