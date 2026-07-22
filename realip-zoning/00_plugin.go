@@ -3,7 +3,6 @@ package realip_zoning
 import (
 	"context"
 	"net/http"
-	"net/netip"
 )
 
 type RealIPZoningPlugin struct {
@@ -13,7 +12,7 @@ type RealIPZoningPlugin struct {
 	proxyConf *proxyConf_t
 
 	nullZoneHeaders headerSet
-	invertedZones   map[netip.Prefix]*headerSet
+	invertedZones   map[ipRange]*headerSet
 }
 
 // #region Traefik Plugin Interface
@@ -39,7 +38,7 @@ func New(ctx context.Context, next http.Handler, config *Config) (http.Handler, 
 		return nil, err
 	}
 
-	var invertedZones map[netip.Prefix]*headerSet
+	var invertedZones map[ipRange]*headerSet
 	invertedZones, err = toInvertedZones(ctx, config.Zones)
 	if err != nil {
 		return nil, err

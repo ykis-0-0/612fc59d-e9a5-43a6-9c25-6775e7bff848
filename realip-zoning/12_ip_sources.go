@@ -24,17 +24,17 @@ type IPSources struct {
 	DirectSource []netip.Prefix `json:"fromList,omitempty"`
 }
 
-func (srcset IPSources) getCIDRs() ([]netip.Prefix, error) {
+func (srcset IPSources) intoIpRanges() ([]ipRange, error) {
 	// 1a. Fetch from URLs
 	urls := make([]*url.URL, len(srcset.URLSources))
 	for i, u := range srcset.URLSources {
 		urls[i] = u.URL
 	}
 
-	cidrU, errU := fetchCIDRsFromURLs(urls)
+	cidrUrl, errU := fetchCIDRsFromURLs(urls)
 
 	// 1b. Fetch from Files & Dir
-	cidrD, errD := fetchCIDRsFromDir(srcset.DirSource)
+	cidrDir, errD := fetchCIDRsFromDir(srcset.DirSource)
 
 	checker := func(p netip.Prefix) error {
 		if !p.IsValid() {
@@ -54,10 +54,10 @@ func (srcset IPSources) getCIDRs() ([]netip.Prefix, error) {
 		return nil, err
 	}
 
-	cidrSet := slices.Concat(srcset.DirectSource, cidrU, cidrD)
-	cidrSet = cidr_Consolidate(cidrSet)
+	cidrSet := slices.Concat(srcset.DirectSource, cidrUrl, cidrDir)
+	allIps := cidr_Consolidate(cidrSet)
 
-	return cidrSet, nil
+	return allIps, nil
 }
 
 // Parse a machine-readable plain-text list of CIDRs.
