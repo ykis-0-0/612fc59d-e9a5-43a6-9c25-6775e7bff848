@@ -11,14 +11,19 @@ import (
 )
 
 // Fetches and aggregates CIDR lists from specified local directory.
-//
-// Returns all errors aggregated alongside all successfully parsed prefixes
+// Returns successfully parsed prefixes and list of errors
+// Empty directories gets empty set
 func fetchCIDRsFromDir(dir string) ([]netip.Prefix, []error) {
 
-	fso := os.DirFS(dir)
+	dirTrimmed := strings.TrimSpace(dir)
+	if dirTrimmed == "" {
+		return nil, []error{fmt.Errorf("directory not specified")}
+	}
+
+	fso := os.DirFS(dirTrimmed)
 	entries, err := fs.ReadDir(fso, ".")
 	if err != nil {
-		return nil, []error{fmt.Errorf("unable to list root folder %q: %w", dir, err)}
+		return nil, []error{fmt.Errorf("unable to list root folder %q: %w", dirTrimmed, err)}
 	}
 
 	syncer := newCollector[netip.Prefix](len(entries))
