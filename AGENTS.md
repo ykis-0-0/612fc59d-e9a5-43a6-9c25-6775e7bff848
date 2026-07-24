@@ -24,8 +24,9 @@
 
 ### LLM Change Fences
 - All changes should be made within comment fences (either added or provided) for review purposes.
-    - Start the comment fence with `// LLM: <one-liner description of change>`; and
+    - Start the comment fence with `// LLM-DID: <one-liner description of change>`; and
     - Complete with `// LLM-END`.
+    - In addition, User may use `// LLM-TODO: <intent>` to mark places for Agent to add code, or `// LLM-NOTE: <observation>` to add notes.
 - Do only one "transformation" or "action" for each fenced change stanza, you may add multiple stanzas for a change requested. You may also split existing fences into smaller ones if deemed required.
 
 ### File Naming
