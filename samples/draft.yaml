@@ -1,0 +1,41 @@
+experimental:
+  localPlugins:
+    zoning-realip-test:
+      moduleName: ykis.me/traefik-plugins/zoning-realip
+
+middlewares:
+  realip-zoning:
+    plugin:
+      realip-zoning-test:
+        trustedProxies:
+          header: X-Forwarded-For # CF-Connecting-IP
+          fromURLs:
+            - https://www.cloudflare.com/ips-v4/
+            - https://www.cloudflare.com/ips-v6/
+          fromList:
+            - 172.64.0.0/13
+        nullZoneHeaders:
+            X-Real-IP-Classification: unknown
+            X-Realm-Trusted: no
+        zones:
+          - ips:
+              fromList:
+                - 147.8.0.0/16
+                - 175.159.158.0/23
+                - 175.159.160.0/19
+                - 175.159.212.0/22
+                - 202.45.128.0/24
+                - 202.189.96.0/19
+                - 2001:ce0:2::/48
+                - 2001:ce0:2200::/40
+              fromURLs:
+                - https://example.its.hku.hk/ips.txt
+            attachHeaders:
+              X-Real-IP-Classification: hku
+              X-Realm-Trusted: yes
+          - ips:
+              fromList:
+                - 127.0.0.0/8
+            attachHeaders:
+              X-Real-IP-Classification: loopback
+              X-Realm-Trusted: yes

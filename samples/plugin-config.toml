@@ -1,0 +1,41 @@
+[experimental.localPlugins.realip-zoning-test]
+moduleName = 'ykis.me/traefik-plugins/realip-zoning'
+
+[middlewares.realip-zoning.plugin.realip-zoning-test.trustedProxies]
+header = 'X-Forwarded-For' # would probably be CF-Connecting-IP in prod, but X-Forwarded-For enables more variety in testing
+fromURLs = [
+  'https://www.cloudflare.com/ips-v4/',
+  'https://www.cloudflare.com/ips-v6/'
+]
+fromList = ['172.64.0.0/13']
+
+[middlewares.realip-zoning.plugin.realip-zoning-test.nullZone.attachHeaders]
+X-Real-IP-Classification = 'unknown'
+X-Realm-Trusted = 'no'
+
+[[middlewares.realip-zoning.plugin.realip-zoning-test.zones]]
+ips.fromList = [
+  '147.8.0.0/16',
+  '175.159.158.0/23',
+  '175.159.160.0/19',
+  '175.159.212.0/22',
+  '202.45.128.0/24',
+  '202.189.96.0/19',
+  '2001:ce0:2::/48',
+  '2001:ce0:2200::/40'
+]
+ips.fromDir = '/srv/app/traefik/ipctrl-zones.d'
+ips.fromURLs = ['https://example.its.hku.hk/ips.txt']
+
+[middlewares.realip-zoning.plugin.realip-zoning-test.zones.attachHeaders]
+X-Real-IP-Classification = 'hku'
+X-Realm-Trusted = 'yes'
+
+[[middlewares.realip-zoning.plugin.realip-zoning-test.zones]]
+ips.fromList = [
+  '127.0.0.0/8'
+]
+
+[middlewares.realip-zoning.plugin.realip-zoning-test.zones.attachHeaders]
+X-Real-IP-Classification = 'loopback'
+X-Realm-Trusted = 'yes'
